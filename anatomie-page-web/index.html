@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomie d’une page web — l’ENT Ernest de l’Université de Strasbourg</title>
+<meta name="description" content="Présentation interactive : atomiser une page web, nommer ses composants, comprendre son environnement.">
+<style>
+@font-face{font-family:"Manrope";font-style:normal;font-display:swap;font-weight:200 800;
+  src:url(assets/fonts/manrope-latin-ext-wght-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Manrope";font-style:normal;font-display:swap;font-weight:200 800;
+  src:url(assets/fonts/manrope-latin-wght-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+:root{
+  --ink:#10202a; --ink2:#2c3c45; --muted:#6c7a82; --paper:#f5f3ee; --card:#ffffff;
+  --line:#dcd8cf; --teal:#23868b; --teal-d:#17666a; --teal-l:#d8ecea;
+  --accent:#ee7a12; --accent-l:#fde6d0; --sun:#f3c64a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b161c;font-family:"Manrope",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;font-feature-settings:"kern","liga"}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input{font:inherit}
+
+/* ---------- Stage ---------- */
+#viewport{position:fixed;inset:0;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:0 0}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;background:var(--paper);overflow:hidden;
+  opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s}
+.slide.current{opacity:1;visibility:visible;transition:opacity .45s ease}
+.print-only{display:none!important}
+
+/* ---------- Common slide parts ---------- */
+.kicker{position:absolute;left:110px;top:66px;font-size:19px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);display:flex;gap:18px;align-items:center}
+.kicker b{color:var(--ink);font-weight:800}
+.kicker::before{content:"";width:44px;height:3px;background:var(--accent)}
+.pnum{position:absolute;right:110px;top:66px;font-size:18px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-weight:750;letter-spacing:-.025em;line-height:1.02}
+.slide>h2{position:absolute;left:110px;top:108px;right:110px;font-size:62px}
+.slide>h2 em{font-style:normal;color:var(--teal)}
+.body{position:absolute;left:110px;right:110px;top:240px;bottom:70px}
+p{font-size:25px;line-height:1.5;color:var(--ink2)}
+.lead{font-size:30px;line-height:1.45;color:var(--ink2);font-weight:450}
+.small{font-size:19px;line-height:1.45;color:var(--muted)}
+.row{display:flex;gap:60px}
+.col{display:flex;flex-direction:column;gap:22px}
+.note{font-size:17px;color:var(--muted);font-style:italic}
+.tag-en{font-weight:500;font-style:italic;color:var(--muted);font-size:.78em;letter-spacing:0}
+
+/* ---------- Dark slides ---------- */
+.dark{background:var(--ink);color:#fff}
+.dark p,.dark .lead{color:#c8d3d8}
+.dark .kicker b{color:#fff}
+
+/* ---------- Cover ---------- */
+#cover .cover-shot{position:absolute;right:-120px;top:-40px;width:1080px;height:1200px;transform:rotate(-6deg);transform-origin:center;border-radius:18px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.5)}
+#cover .cover-shot img{position:absolute;width:100%;top:0;left:0}
+#cover .cover-veil{position:absolute;inset:0;background:linear-gradient(90deg,var(--ink) 0%,var(--ink) 44%,rgba(16,32,42,.86) 58%,rgba(16,32,42,.15) 100%)}
+#cover h1{position:absolute;left:110px;top:300px;font-size:132px;line-height:.95;width:1000px;letter-spacing:-.04em}
+#cover h1 span{color:var(--accent)}
+#cover .sub{position:absolute;left:114px;top:620px;width:820px;font-size:31px;line-height:1.4;color:#c8d3d8}
+#cover .meta{position:absolute;left:114px;bottom:86px;font-size:20px;color:#8fa2ab;line-height:1.6}
+#cover .meta b{color:#fff;font-weight:700}
+#cover .pnum{display:none}
+#cover .pin{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+
+/* ---------- Chapter dividers ---------- */
+.divider{background:var(--teal);color:#fff}
+.divider .num{position:absolute;left:96px;top:150px;font-size:420px;font-weight:800;line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.55)}
+.divider h2{position:absolute;left:110px;top:auto;bottom:270px;font-size:104px;letter-spacing:-.035em;width:1500px}
+.divider p{position:absolute;left:114px;bottom:150px;font-size:32px;color:#e2f2f1;width:1300px}
+.divider .kicker,.divider .kicker b{color:#fff}
+.divider .pnum{color:#cde7e5}
+
+/* ---------- Screenshot crops ---------- */
+.shot{position:relative;overflow:hidden;border-radius:10px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.05),0 18px 50px rgba(16,32,42,.14);flex:none}
+.shot img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none}
+.hot{position:absolute;border:3px solid var(--accent);border-radius:6px;background:rgba(238,122,18,.06);transition:background .2s,box-shadow .2s;cursor:pointer}
+.hot.on{background:rgba(238,122,18,.2);box-shadow:0 0 0 6px rgba(238,122,18,.25)}
+.pin{position:absolute;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:17px;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.25);border:2px solid #fff;z-index:3;pointer-events:none;font-variant-numeric:tabular-nums}
+.hot.on .pin,.pin.on{background:var(--ink)}
+
+/* legend */
+.legend{list-style:none;display:grid;gap:14px;align-content:start}
+.legend li{display:grid;grid-template-columns:40px 1fr;gap:4px 14px;padding:14px 18px 15px 14px;background:var(--card);border-radius:12px;border:1px solid var(--line);transition:border-color .2s,transform .2s,box-shadow .2s;cursor:default}
+.legend li.on{border-color:var(--accent);box-shadow:0 10px 30px rgba(238,122,18,.18);transform:translateX(4px)}
+.legend .n{grid-row:span 3;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:17px;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.legend li.on .n{background:var(--ink)}
+.legend h4{font-size:23px;font-weight:750;letter-spacing:-.01em;line-height:1.2}
+.legend .d{font-size:18px;line-height:1.42;color:var(--ink2)}
+.legend .tip{font-size:16.5px;line-height:1.4;color:var(--teal-d);font-weight:600}
+.legend .tip::before{content:"→ "}
+.legend.big h4{font-size:27px}
+.legend.big .d{font-size:20.5px}
+.legend.big .tip{font-size:18.5px}
+.legend.big li{padding:16px 20px 18px 16px}
+.legend.compact li{padding:11px 16px 12px 12px}
+.legend.compact .d{font-size:17px}
+.legend.compact .tip{font-size:15.5px}
+
+/* ---------- Generic cards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 28px}
+.card h3{font-size:27px;margin-bottom:10px}
+.card p{font-size:20px;line-height:1.45}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);font-size:17px;font-weight:650;background:#fff;color:var(--ink2);transition:.2s}
+.chip.on,.chip:hover{border-color:var(--teal);background:var(--teal);color:#fff}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:12px;background:var(--ink);color:#fff;font-size:19px;font-weight:700}
+.btn.ghost{background:transparent;border:1.5px solid var(--ink);color:var(--ink)}
+
+/* fragments */
+.frag{opacity:.12;transform:translateY(10px);transition:opacity .45s,transform .45s}
+.frag.shown{opacity:1;transform:none}
+
+/* ---------- Objectives ---------- */
+.obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.obj{background:#fff;border-radius:18px;padding:34px 34px 30px;border:1px solid var(--line);min-height:330px}
+.obj .big{font-size:76px;font-weight:800;color:var(--teal);letter-spacing:-.04em;line-height:1}
+.obj h3{font-size:32px;margin:18px 0 12px}
+.obj p{font-size:21px}
+.timeline{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-top:44px;border-top:3px solid var(--ink)}
+.timeline div{padding:20px 26px 0 0;font-size:20px;color:var(--ink2);line-height:1.45}
+.timeline b{display:block;font-size:24px;color:var(--ink);margin-bottom:4px}
+.timeline span{color:var(--accent);font-weight:800}
+
+/* ---------- Agenda ---------- */
+.agenda{display:grid;grid-template-columns:1fr 1fr;gap:10px 80px;margin-top:10px}
+.agenda a{display:grid;grid-template-columns:110px 1fr;align-items:baseline;padding:22px 0;border-bottom:1.5px solid var(--line);text-decoration:none;color:var(--ink);transition:.2s}
+.agenda a:hover{padding-left:12px;border-color:var(--accent)}
+.agenda .an{font-size:54px;font-weight:800;color:var(--teal);letter-spacing:-.04em}
+.agenda .at{font-size:34px;font-weight:700;letter-spacing:-.02em}
+.agenda .ad{grid-column:2;font-size:20px;color:var(--muted);margin-top:4px}
+
+/* ---------- Flow ---------- */
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:26px;margin-top:20px}
+.step{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:34px 30px 30px;min-height:560px}
+.step .sn{font-size:20px;font-weight:800;color:var(--accent)}
+.step .ico{height:150px;display:grid;place-items:center;margin:16px 0 14px}
+.step h3{font-size:32px;margin-bottom:14px}
+.step p{font-size:22px;line-height:1.48}
+.step:not(:last-child)::after{content:"";position:absolute;right:-22px;top:50%;width:18px;height:18px;border-top:3px solid var(--teal);border-right:3px solid var(--teal);transform:translateY(-50%) rotate(45deg)}
+.ico svg{width:136px;height:136px;stroke:var(--ink);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ico svg .a{stroke:var(--accent)}
+.ico svg .t{stroke:var(--teal)}
+
+/* ---------- URL ---------- */
+.urlbar{display:flex;align-items:center;gap:22px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:22px 40px;box-shadow:0 18px 50px rgba(16,32,42,.1)}
+.urlbar .lock{width:34px;height:34px;flex:none}
+.url{display:flex;font-size:52px;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+.url span{position:relative;cursor:pointer;padding:0 1px;border-radius:6px;transition:.2s}
+.url span:hover,.url span.on{background:var(--seg)}
+.url span::after{content:attr(data-l);position:absolute;left:50%;top:calc(100% + 56px);transform:translateX(-50%);font-size:18px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--segc);white-space:nowrap}
+.url span::before{content:"";position:absolute;left:3px;right:3px;top:calc(100% + 22px);height:16px;border:3px solid var(--segc);border-top:0;border-radius:0 0 8px 8px}
+.urlcards{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:150px}
+.urlcards .card{padding:24px 26px;min-height:190px;border-top:6px solid var(--segc);transition:.2s}
+.urlcards .card.on{transform:translateY(-6px);box-shadow:0 16px 40px rgba(16,32,42,.14)}
+.urlcards h3{font-size:27px;margin-bottom:8px}
+.urlcards p{font-size:20px}
+.urlcards code{font-family:inherit;font-weight:700;color:var(--segc)}
+
+/* ---------- Login mock ---------- */
+.mock-browser{width:700px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 30px 80px rgba(16,32,42,.18);border:1px solid var(--line)}
+.mb-top{display:flex;align-items:center;gap:14px;padding:16px 20px;background:#eceae4}
+.mb-top i{width:14px;height:14px;border-radius:50%;background:#cfcac0;display:block}
+.mb-url{flex:1;margin-left:14px;background:#fff;border-radius:999px;padding:9px 18px;font-size:17px;color:var(--ink2);display:flex;gap:10px;align-items:center}
+.mb-body{padding:50px 70px 54px;position:relative}
+.mb-body h3{font-size:34px;margin-bottom:6px}
+.mb-body .small{margin-bottom:30px}
+.fld{margin-bottom:22px;position:relative}
+.fld label{display:block;font-size:17px;font-weight:700;margin-bottom:8px}
+.fld .in{height:58px;border:2px solid #c9c4b9;border-radius:10px;display:flex;align-items:center;padding:0 18px;font-size:20px;color:var(--ink2)}
+.fld .in.pw{letter-spacing:.3em;font-size:22px}
+.fld .eye{position:absolute;right:16px;bottom:15px;width:28px;height:28px}
+.mb-btn{height:60px;border-radius:10px;background:var(--teal);color:#fff;font-size:21px;font-weight:750;display:grid;place-items:center;margin-top:8px}
+.mb-link{margin-top:18px;font-size:17px;color:var(--teal);text-decoration:underline}
+.callout{position:absolute;margin-left:-75px;display:flex;align-items:center;gap:10px;font-size:17px;font-weight:750;color:var(--accent);white-space:nowrap}
+.callout::before{content:"";width:60px;height:2.5px;background:var(--accent)}
+.callout.left{flex-direction:row-reverse}
+.reflex{list-style:none;display:grid;gap:14px}
+.reflex li{font-size:20.5px;line-height:1.4;padding-left:40px;position:relative;color:var(--ink2)}
+.reflex li::before{content:"✓";position:absolute;left:0;top:-2px;width:28px;height:28px;border-radius:50%;background:var(--teal-l);color:var(--teal-d);font-weight:800;font-size:16px;display:grid;place-items:center}
+
+/* ---------- Three views ---------- */
+.views{display:flex;gap:46px;align-items:flex-start}
+.view{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.view .vt{font-size:23px;font-weight:750}
+.view .vt small{display:block;font-size:16.5px;font-weight:500;color:var(--muted);margin-top:2px}
+.canvas{position:relative;overflow:hidden;border-radius:10px;background:#fff;box-shadow:0 18px 50px rgba(16,32,42,.14);flex:none}
+.zb{position:absolute;display:grid;place-items:center;text-align:center;font-weight:800;color:#fff;font-size:15px;line-height:1.15;letter-spacing:.02em;border:2px solid #fff;padding:4px}
+.wf{position:absolute;background:#d9dde0;border-radius:2px}
+.wf.img{background:#c4cacd linear-gradient(to top right,transparent calc(50% - 1px),#a9b1b5 50%,transparent calc(50% + 1px)),linear-gradient(to bottom right,#c4cacd calc(50% - 1px),#a9b1b5 50%,#c4cacd calc(50% + 1px))}
+.wf.line{background:#c9ced1;border-radius:3px}
+.wf.out{background:transparent;border:2px solid #c4cacd}
+.wf.dark{background:#8f9a9f}
+.wf.acc{background:#f0b47c}
+
+/* ---------- Grid slide ---------- */
+.ov{position:absolute;inset:0;pointer-events:none;transition:opacity .35s;opacity:0}
+.ov.on{opacity:1}
+.ov .c12{position:absolute;top:0;bottom:0;background:rgba(238,122,18,.16);border-left:1px solid rgba(238,122,18,.55);border-right:1px solid rgba(238,122,18,.55)}
+.ov .c3{position:absolute;top:0;bottom:0;background:rgba(35,134,139,.2);border:2px dashed var(--teal)}
+.ov .c3 b{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--teal);color:#fff;font-size:16px;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.ov .mg{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(16,32,42,.25) 0 6px,transparent 6px 12px)}
+.toggles{display:flex;flex-wrap:wrap;gap:12px}
+.legend-sw{display:flex;align-items:center;gap:12px;font-size:19px;color:var(--ink2)}
+.legend-sw i{width:26px;height:26px;border-radius:6px;display:block;flex:none}
+
+/* ---------- Fold ---------- */
+.fold{position:absolute;left:0;right:0;border-top:3px dashed var(--accent);z-index:4}
+.fold span{position:absolute;right:12px;top:-36px;background:var(--accent);color:#fff;font-size:16px;font-weight:750;padding:5px 12px;border-radius:6px}
+.below{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to bottom,rgba(245,243,238,.55),rgba(245,243,238,.92));z-index:2}
+.eye{position:absolute;z-index:5;width:54px;height:54px;border-radius:50%;background:var(--ink);color:#fff;font-weight:800;font-size:24px;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.levers{display:grid;gap:18px}
+.lever{display:grid;grid-template-columns:54px 1fr;gap:18px;align-items:start}
+.lever .eye{position:static}
+.lever h3{font-size:26px;margin-bottom:4px}
+.lever p{font-size:19.5px}
+
+/* ---------- Variants (nav) ---------- */
+.variants{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.var{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.var .mini{height:170px;border-radius:8px;background:#eef0f1;position:relative;overflow:hidden;margin-bottom:12px}
+.var h4{font-size:20px}
+.var p{font-size:16px;line-height:1.4;color:var(--muted)}
+.mini .bar{position:absolute;left:0;right:0;top:0;height:30px;background:#c9ced1}
+.mini .it{position:absolute;top:10px;height:10px;width:34px;background:#8f9a9f;border-radius:3px}
+.mini .dd{position:absolute;background:#fff;border:2px solid var(--teal);border-radius:4px}
+.mini .ln{position:absolute;height:7px;background:#c9ced1;border-radius:3px}
+
+/* ---------- Strips (widget headers) ---------- */
+.strips{display:grid;grid-template-columns:1fr 1fr;gap:16px 22px}
+
+/* ---------- Article schema ---------- */
+.schema{display:flex;align-items:center;gap:30px}
+.arrow-r{font-size:54px;color:var(--accent);font-weight:300}
+.apage{width:520px;background:#fff;border-radius:12px;border:1px solid var(--line);padding:22px;display:grid;gap:9px;box-shadow:0 14px 36px rgba(16,32,42,.1)}
+.apage div{border-radius:4px;background:#dfe3e5;font-size:13.5px;font-weight:700;color:var(--ink2);display:flex;align-items:center;padding:0 10px;letter-spacing:.02em}
+
+/* ---------- Explorer ---------- */
+#exp-scroll{position:absolute;left:0;top:0;width:1080px;height:770px;overflow-y:auto;overflow-x:hidden;border-radius:12px;background:#fff;box-shadow:0 18px 50px rgba(16,32,42,.14);scrollbar-width:thin}
+#exp-canvas{position:relative}
+#exp-canvas img{position:absolute;left:0;top:0}
+#exp-canvas .hot{border-width:2px;background:transparent;opacity:0;transition:opacity .2s,background .2s}
+#exp-canvas.showall .hot,#exp-canvas .hot:hover,#exp-canvas .hot.on{opacity:1}
+#exp-canvas .hot:hover{background:rgba(238,122,18,.14)}
+#exp-canvas .hot.zone{border-color:var(--teal);border-style:dashed}
+#exp-canvas .hot.dim{display:none}
+#exp-panel{position:absolute;left:1130px;right:0;top:0;bottom:0;display:flex;flex-direction:column;gap:20px}
+#exp-info{flex:1;background:#fff;border-radius:18px;border:1px solid var(--line);padding:34px 36px;overflow:auto}
+#exp-info .cat{font-size:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+#exp-info h3{font-size:44px;margin:10px 0 4px}
+#exp-info .en{font-size:21px;color:var(--muted);font-style:italic;margin-bottom:22px}
+#exp-info p{font-size:21px;margin-bottom:14px}
+#exp-info .tipbox{background:var(--accent-l);border-radius:12px;padding:16px 20px;font-size:19px;line-height:1.45;color:#7a3c06;font-weight:600}
+.switch{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:650;color:var(--ink2);cursor:pointer;user-select:none}
+.switch i{width:50px;height:28px;border-radius:999px;background:#c9c4b9;position:relative;transition:.2s}
+.switch i::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on i{background:var(--teal)}
+.switch.on i::after{left:25px}
+
+/* ---------- Carto ---------- */
+.carto-legend{columns:3;column-gap:34px;list-style:none}
+.carto-legend li{break-inside:avoid;display:flex;gap:12px;align-items:center;font-size:18.5px;font-weight:600;padding:7px 0;border-bottom:1px solid var(--line)}
+.carto-legend .n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:14.5px;display:grid;place-items:center;flex:none}
+.carto-legend .cg{break-inside:avoid;font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:14px 0 2px;display:block;border:0}
+.carto-legend .cg:first-child{margin-top:0}
+.canvas .pin{width:22px;height:22px;font-size:11.5px;border-width:1.5px}
+
+/* ---------- Lexique ---------- */
+#lex-tools{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+#lex-chips{width:100%;order:3}
+#lex-search{width:560px;height:56px;border-radius:12px;border:2px solid var(--line);padding:0 20px 0 52px;font-size:20px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' fill='none' stroke='%2310202a' stroke-width='2.4'%3E%3Ccircle cx='9.5' cy='9.5' r='7'/%3E%3Cpath d='M15 15l5 5'/%3E%3C/svg%3E") no-repeat 18px center;outline:none}
+#lex-search:focus{border-color:var(--teal)}
+#lex-count{font-size:18px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+#lex-list{position:absolute;top:150px;left:0;right:0;bottom:0;overflow:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-content:start;padding:4px 8px 20px 2px;scrollbar-width:thin}
+.term{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px 18px;position:relative}
+.term h4{font-size:23px;letter-spacing:-.01em}
+.term .en{font-size:16px;font-style:italic;color:var(--muted);margin-top:2px}
+.term p{font-size:17.5px;line-height:1.45;margin-top:8px}
+.term .cat{display:block;margin-bottom:6px;font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}
+.term .see{margin-top:10px;font-size:15.5px;font-weight:750;color:var(--accent);display:inline-block}
+.term mark{background:var(--sun);color:inherit;border-radius:3px}
+.lexp{columns:3;column-gap:44px;column-fill:auto;height:100%}
+.lexp h5{font-size:15.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin:0 0 10px;break-after:avoid}
+.lexp h5:not(:first-child){margin-top:18px}
+.lexp div{break-inside:avoid;margin-bottom:11px;font-size:16.8px;line-height:1.4;color:var(--ink2)}
+.lexp div b{color:var(--ink);font-weight:800}
+.lexp div i{color:var(--muted)}
+
+/* ---------- Quiz ---------- */
+#quiz-area{display:flex;gap:60px;height:100%}
+#quiz-left{width:960px;display:flex;flex-direction:column;gap:18px}
+#quiz-right{flex:1;display:flex;flex-direction:column}
+#quiz-q{font-size:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+#quiz-right h3{font-size:44px;margin:10px 0 26px}
+.opts{display:grid;gap:14px}
+.opt{text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:20px 24px;font-size:23px;font-weight:700;transition:.2s;display:flex;justify-content:space-between;align-items:center}
+.opt:hover{border-color:var(--teal)}
+.opt.good{border-color:#2f9e5a;background:#e3f4e9}
+.opt.bad{border-color:#d9534f;background:#fbe5e4}
+.opt small{font-size:16px;font-weight:600;color:var(--muted);font-style:italic}
+#quiz-fb{margin-top:22px;min-height:120px;font-size:20px;line-height:1.45;color:var(--ink2)}
+#quiz-fb b{color:var(--ink)}
+.qbar{display:flex;gap:8px;margin-top:auto;align-items:center}
+.qbar i{flex:1;height:8px;border-radius:9px;background:#e1ddd4}
+.qbar i.ok{background:#2f9e5a}.qbar i.ko{background:#d9534f}.qbar i.cur{background:var(--ink)}
+#quiz-score{font-size:20px;font-weight:800;margin-left:16px;white-space:nowrap}
+.exo-lines{columns:2;column-gap:50px;list-style:none}
+.exo-lines li{display:flex;gap:14px;align-items:flex-end;font-size:20px;padding:15px 0 6px;border-bottom:1.5px dotted #a9a396;break-inside:avoid;min-height:58px}
+.exo-lines .n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:15px;display:grid;place-items:center;flex:none}
+
+/* ---------- Atelier / Retenir ---------- */
+.steps-list{list-style:none;counter-reset:s;display:grid;gap:26px}
+.steps-list li{counter-increment:s;display:grid;grid-template-columns:70px 1fr;gap:18px;align-items:start;font-size:26px;line-height:1.45;color:var(--ink2)}
+.steps-list li::before{content:counter(s,decimal-leading-zero);font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-.03em}
+.steps-list b{color:var(--ink)}
+.keys{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+.key{border-top:4px solid var(--accent);padding-top:22px}
+.key .kn{font-size:80px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1}
+.key h3{font-size:33px;margin:18px 0 12px;color:#fff}
+.key p{font-size:22px}
+
+/* ---------- Chrome (controls) ---------- */
+#chrome{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:rgba(16,32,42,.86);backdrop-filter:blur(10px);color:#fff;border-radius:999px;padding:6px 8px;z-index:50;transition:opacity .4s;font-size:14px}
+#chrome.hide{opacity:0;pointer-events:none}
+#chrome button{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff}
+#chrome button:hover{background:rgba(255,255,255,.14)}
+#chrome svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#counter{min-width:74px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+#progress{position:fixed;left:0;top:0;height:4px;background:var(--accent);z-index:51;transition:width .4s}
+#toc{position:fixed;inset:0;background:rgba(11,22,28,.94);z-index:60;display:none;overflow:auto;padding:70px 8vw}
+#toc.open{display:block}
+#toc h2{color:#fff;font-size:34px;margin-bottom:30px}
+#toc ol{list-style:none;columns:3;column-gap:40px}
+#toc li{break-inside:avoid}
+#toc a{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.12);color:#c8d3d8;text-decoration:none;font-size:17px}
+#toc a:hover,#toc a.cur{color:#fff}
+#toc a span{color:var(--accent);font-weight:800;min-width:30px;font-variant-numeric:tabular-nums}
+#help{position:fixed;right:18px;bottom:18px;z-index:50;color:#8fa2ab;font-size:13px;transition:opacity .4s}
+#help.hide{opacity:0}
+
+/* ---------- Print ---------- */
+@page{size:1920px 1080px;margin:0}
+@media print{
+  html,body{background:#fff;height:auto}
+  #viewport{position:static;overflow:visible}
+  #stage{position:static;transform:none!important;width:1920px;height:auto}
+  .slide{position:relative;opacity:1;visibility:visible;transition:none;break-after:page;page-break-after:always}
+  .screen-only,#chrome,#progress,#toc,#help{display:none!important}
+  .print-only{display:block!important}
+  .frag{opacity:1!important;transform:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .shot,.canvas,.mock-browser,.urlbar{box-shadow:none!important;outline:1px solid #e2ded5}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="viewport"><div id="stage">
+
+<!-- 1. COUVERTURE -->
+<section class="slide dark" id="cover" data-title="Couverture">
+  <div class="cover-shot" id="cover-shot"></div>
+  <div class="cover-veil"></div>
+  <div class="kicker"><b>Design d’interface</b> BUT Communication · deuxième année</div>
+  <h1>Anatomie d’une page <span>web</span></h1>
+  <p class="sub">Disséquer une page réelle — l’ENT Ernest de l’Université de Strasbourg — pour nommer chacun de ses éléments et comprendre à quoi il sert.</p>
+  <p class="meta"><b>Pierre Simonneau</b> — directeur de création, 6mono<br>Support de cours interactif · flèches du clavier pour naviguer · touche O pour le sommaire</p>
+</section>
+
+<!-- 2. OBJECTIFS -->
+<section class="slide" data-title="Objectifs de la séance">
+  <div class="kicker"><b>Introduction</b> Objectifs</div>
+  <h2>Une page web n’est pas une image :<br>c’est un <em>assemblage de pièces</em>.</h2>
+  <div class="body" style="top:330px">
+    <div class="obj-grid">
+      <div class="obj"><div class="big">01</div><h3>Nommer</h3><p>Disposer d’un vocabulaire précis et partagé avec les designers, les développeurs et les commanditaires.</p></div>
+      <div class="obj"><div class="big">02</div><h3>Comprendre</h3><p>Savoir à quoi sert chaque élément, pourquoi il est placé là et quelles conventions il respecte.</p></div>
+      <div class="obj"><div class="big">03</div><h3>Analyser</h3><p>Lire une page comme un système : zones, grille, composants réutilisés, hiérarchie visuelle.</p></div>
+    </div>
+    <div class="timeline">
+      <div><b>Observer <span>· 15 min</span></b>Avant la page : l’URL, le serveur, la connexion.</div>
+      <div><b>Nommer <span>· 45 min</span></b>Zone par zone, composant par composant.</div>
+      <div><b>Pratiquer <span>· 30 min</span></b>Quiz, puis atelier sur une page de votre choix.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. SOMMAIRE -->
+<section class="slide" data-title="Sommaire">
+  <div class="kicker"><b>Introduction</b> Sommaire</div>
+  <h2>Sept temps pour <em>atomiser</em> une page.</h2>
+  <div class="body" style="top:290px">
+    <nav class="agenda">
+      <a href="#ch1"><span class="an">01</span><span class="at">Avant la page</span><span class="ad">URL, serveur, identifiant, mot de passe</span></a>
+      <a href="#ch5"><span class="an">05</span><span class="at">Pied de page</span><span class="ad">Copyright, mentions légales, liens de service</span></a>
+      <a href="#ch2"><span class="an">02</span><span class="at">Vue d’ensemble</span><span class="ad">Zoning, wireframe, grille, ligne de flottaison</span></a>
+      <a href="#ch6"><span class="an">06</span><span class="at">Explorer et lexique</span><span class="ad">La page cliquable et le vocabulaire complet</span></a>
+      <a href="#ch3"><span class="an">03</span><span class="at">En-tête et navigation</span><span class="ad">Logo, recherche, menus, états</span></a>
+      <a href="#ch7"><span class="an">07</span><span class="at">À vous de jouer</span><span class="ad">Quiz et atelier d’atomisation</span></a>
+      <a href="#ch4"><span class="an">04</span><span class="at">Corps de page</span><span class="ad">Modules, carrousel, articles, tuiles, onglets</span></a>
+    </nav>
+  </div>
+</section>
+
+<!-- ===== CH 1 ===== -->
+<section class="slide divider" id="ch1" data-title="01 — Avant la page">
+  <div class="kicker"><b>Chapitre</b> 01</div>
+  <div class="num">01</div>
+  <h2>Avant la page</h2>
+  <p>Que se passe-t-il entre le moment où l’on tape une adresse et celui où la page s’affiche ?</p>
+</section>
+
+<section class="slide" data-title="Du navigateur au serveur">
+  <div class="kicker"><b>01</b> Avant la page</div>
+  <h2>Cinq étapes, <em>en une fraction de seconde</em>.</h2>
+  <div class="body" style="top:290px">
+    <div class="flow">
+      <div class="step frag"><div class="sn">01</div><div class="ico"><svg viewBox="0 0 110 110"><rect x="8" y="18" width="94" height="72" rx="8"/><path d="M8 36h94"/><rect class="a" x="22" y="50" width="66" height="14" rx="7"/><circle cx="18" cy="27" r="2"/><circle cx="26" cy="27" r="2"/></svg></div><h3>Saisie</h3><p>L’internaute tape une URL dans la barre d’adresse du <b>navigateur</b>, ou clique sur un lien.</p></div>
+      <div class="step frag"><div class="sn">02</div><div class="ico"><svg viewBox="0 0 110 110"><rect x="18" y="12" width="74" height="86" rx="6"/><path d="M32 32h46M32 48h46M32 64h30"/><path class="a" d="M62 74l10 10 18-22"/></svg></div><h3>Résolution DNS</h3><p>L’annuaire <b>DNS</b> traduit le nom de domaine en <b>adresse IP</b>, celle du serveur.</p></div>
+      <div class="step frag"><div class="sn">03</div><div class="ico"><svg viewBox="0 0 110 110"><rect x="10" y="40" width="34" height="30" rx="4"/><rect x="66" y="22" width="34" height="66" rx="4"/><path d="M74 36h18M74 48h18M74 60h18"/><path class="a" d="M48 50h14m-6-6l6 6-6 6M62 62H48m6 6l-6-6 6-6"/></svg></div><h3>Requête HTTPS</h3><p>Le navigateur demande la page au <b>serveur</b>, par une connexion chiffrée.</p></div>
+      <div class="step frag"><div class="sn">04</div><div class="ico"><svg viewBox="0 0 110 110"><path d="M22 14h44l20 20v62H22z"/><path d="M66 14v20h20"/><path class="a" d="M42 56l-8 8 8 8M66 56l8 8-8 8M58 52l-8 24"/></svg></div><h3>Réponse</h3><p>Le serveur renvoie des fichiers : <b>HTML</b> (structure), <b>CSS</b> (style), <b>JavaScript</b> (interactions), images.</p></div>
+      <div class="step frag"><div class="sn">05</div><div class="ico"><svg viewBox="0 0 110 110"><rect x="8" y="16" width="94" height="78" rx="8"/><rect class="t" x="18" y="26" width="74" height="10" rx="2"/><rect class="a" x="18" y="44" width="34" height="40" rx="2"/><path d="M60 46h32M60 58h32M60 70h22"/></svg></div><h3>Affichage</h3><p>Le navigateur assemble ces fichiers et <b>dessine</b> la page à l’écran : c’est le rendu.</p></div>
+    </div>
+    <p class="small" style="margin-top:40px;font-size:22px">Sur un ENT comme Ernest, une étape s’ajoute entre 03 et 04 : le serveur vérifie d’abord que vous êtes <b>authentifié</b>. Sans cela, il vous redirige vers la page de connexion.</p>
+  </div>
+</section>
+
+<section class="slide" data-title="Anatomie d’une URL">
+  <div class="kicker"><b>01</b> Avant la page</div>
+  <h2>Une adresse se lit <em>de gauche à droite</em>, comme un chemin.</h2>
+  <div class="body" style="top:300px">
+    <div class="urlbar">
+      <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="#23868b" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <div class="url" id="url">
+        <span data-k="proto" data-l="Protocole" style="--segc:#23868b;--seg:#d8ecea">https://</span><span data-k="sub" data-l="Sous-domaine" style="--segc:#7a5bc4;--seg:#ebe4fa">ernest.</span><span data-k="dom" data-l="Domaine" style="--segc:#ee7a12;--seg:#fde6d0">unistra</span><span data-k="tld" data-l="Extension" style="--segc:#c0392b;--seg:#f9dfdc">.fr</span><span data-k="path" data-l="Chemin" style="--segc:#2f7fc0;--seg:#dcebf8">/accueil</span><span data-k="query" data-l="Paramètre" style="--segc:#3e8e41;--seg:#e0f1e1">?onglet=actus</span><span data-k="hash" data-l="Ancre" style="--segc:#9b6a00;--seg:#f6ecd0">#a-la-une</span>
+      </div>
+    </div>
+    <div class="urlcards" id="urlcards">
+      <div class="card" data-k="proto" style="--segc:#23868b"><h3>Protocole</h3><p><code>https://</code> — langage d’échange entre navigateur et serveur. Le « s » signifie sécurisé : les données sont chiffrées.</p></div>
+      <div class="card" data-k="sub" style="--segc:#7a5bc4"><h3>Sous-domaine</h3><p><code>ernest</code> — désigne un service particulier de l’établissement. Le plus courant est « www ».</p></div>
+      <div class="card" data-k="dom" style="--segc:#ee7a12"><h3>Nom de domaine</h3><p><code>unistra.fr</code> — l’identité du site sur le Web ; on le réserve et on le renouvelle chaque année.</p></div>
+      <div class="card" data-k="tld" style="--segc:#c0392b"><h3>Extension</h3><p><code>.fr</code> — domaine de premier niveau : géographique (.fr, .de) ou générique (.com, .org).</p></div>
+      <div class="card" data-k="path" style="--segc:#2f7fc0"><h3>Chemin</h3><p><code>/accueil</code> — la page demandée, à l’intérieur du site, comme un dossier dans un ordinateur.</p></div>
+      <div class="card" data-k="query" style="--segc:#3e8e41"><h3>Paramètre</h3><p><code>?onglet=actus</code> — information transmise au serveur : un filtre, un numéro de page, une recherche.</p></div>
+      <div class="card" data-k="hash" style="--segc:#9b6a00"><h3>Ancre</h3><p><code>#a-la-une</code> — renvoie directement à une section de la page, sans la recharger.</p></div>
+      <div class="card" style="--segc:#10202a;background:var(--ink);color:#fff;border-color:var(--ink)"><h3 style="color:#fff">À retenir</h3><p style="color:#c8d3d8">Survolez chaque partie de l’adresse. Paramètre et ancre sont ici <b style="color:#fff">fictifs</b>, pour l’exemple.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Se connecter">
+  <div class="kicker"><b>01</b> Avant la page</div>
+  <h2>Un ENT est un espace <em>authentifié</em>.</h2>
+  <div class="body" style="top:280px">
+    <div class="row" style="gap:0">
+      <div style="position:relative">
+        <div class="mock-browser">
+          <div class="mb-top"><i></i><i></i><i></i><div class="mb-url"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#23868b" stroke-width="2.6"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>https://connexion.exemple-universite.fr</div></div>
+          <div class="mb-body">
+            <h3>Connexion</h3>
+            <p class="small">Maquette pédagogique — service d’authentification unique</p>
+            <div class="fld"><label>Identifiant</label><div class="in">p.simonneau</div></div>
+            <div class="fld"><label>Mot de passe</label><div class="in pw">••••••••••••</div><svg class="eye" viewBox="0 0 24 24" fill="none" stroke="#6c7a82" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="mb-btn">Se connecter</div>
+            <div class="mb-link">Mot de passe oublié ?</div>
+          </div>
+        </div>
+        <div class="callout" style="left:790px;top:30px">Cadenas : connexion HTTPS</div>
+        <div class="callout" style="left:790px;top:250px">Identifiant (login)</div>
+        <div class="callout" style="left:790px;top:342px">Mot de passe masqué</div>
+        <div class="callout" style="left:790px;top:432px">Bouton d’action principal</div>
+        <div class="callout" style="left:790px;top:500px">Lien de récupération</div>
+      </div>
+      <div class="col" style="width:570px;margin-left:auto;gap:26px">
+        <p style="font-size:22px">Une seule connexion — l’<b>authentification unique</b> (SSO) — ouvre ensuite tous les services : messagerie, cours, emploi du temps. Le serveur ouvre alors une <b>session</b>, mémorisée par un <b>cookie</b>.</p>
+        <h3 style="font-size:26px;margin-top:6px">Les bons réflexes</h3>
+        <ul class="reflex">
+          <li>Vérifier l’adresse et le cadenas avant de saisir quoi que ce soit.</li>
+          <li>Un mot de passe long, unique pour chaque service, jamais partagé.</li>
+          <li>Activer la double authentification lorsqu’elle est proposée.</li>
+          <li>Se déconnecter sur un poste partagé.</li>
+          <li>Se méfier de l’hameçonnage : aucun service ne demande votre mot de passe par courriel.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH 2 ===== -->
+<section class="slide divider" id="ch2" data-title="02 — Vue d’ensemble">
+  <div class="kicker"><b>Chapitre</b> 02</div>
+  <div class="num">02</div>
+  <h2>Vue d’ensemble</h2>
+  <p>Prendre du recul : avant les détails, repérer les grandes masses et la trame qui les organise.</p>
+</section>
+
+<section class="slide" data-title="Capture, zoning, wireframe">
+  <div class="kicker"><b>02</b> Vue d’ensemble</div>
+  <h2>Une même page, <em>trois niveaux de lecture</em>.</h2>
+  <div class="body" style="top:220px;bottom:50px">
+    <div class="row" style="gap:50px">
+      <div class="views" id="views"></div>
+      <div class="col" style="flex:1;gap:26px;padding-top:50px">
+        <div><h3 style="font-size:26px;margin-bottom:6px">La capture</h3><p style="font-size:19.5px">Ce que voit l’usager : couleurs, images, textes réels.</p></div>
+        <div><h3 style="font-size:26px;margin-bottom:6px">Le zoning</h3><p style="font-size:19.5px">Les grandes zones fonctionnelles : en-tête, navigation, trois colonnes, pied de page.</p></div>
+        <div><h3 style="font-size:26px;margin-bottom:6px">Le wireframe</h3><p style="font-size:19.5px">Chaque composant devient un bloc gris : on juge la structure sans être distrait par le graphisme.</p></div>
+        <p class="small">En conception, on suit le chemin inverse : zoning → wireframe → maquette → page.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="La grille">
+  <div class="kicker"><b>02</b> Vue d’ensemble</div>
+  <h2>Sous la page, une <em>grille</em> invisible.</h2>
+  <div class="body">
+    <div class="row" style="gap:56px">
+      <div class="shot" id="grid-shot" data-region="0,0,2896,1300" data-w="1240" data-h="770" data-items=""></div>
+      <div class="col" style="flex:1;gap:22px">
+        <p style="font-size:21.5px">Les contenus s’alignent sur une trame de <b>12 colonnes</b> séparées par des <b>gouttières</b>, entre deux <b>marges</b>. Ernest regroupe ces colonnes en trois : environ <b>3 + 5 + 4</b>.</p>
+        <div class="toggles screen-only">
+          <button class="switch on" data-ov="ov12"><i></i>12 colonnes</button>
+          <button class="switch on" data-ov="ov3"><i></i>3 colonnes réelles</button>
+          <button class="switch" data-ov="ovm"><i></i>Marges</button>
+        </div>
+        <div class="col" style="gap:12px;margin-top:6px">
+          <div class="legend-sw"><i style="background:rgba(238,122,18,.3);border:1px solid #ee7a12"></i>Colonne de la grille</div>
+          <div class="legend-sw"><i style="background:rgba(35,134,139,.25);border:2px dashed #23868b"></i>Colonne de contenu</div>
+          <div class="legend-sw"><i style="background:repeating-linear-gradient(45deg,rgba(16,32,42,.3) 0 4px,transparent 4px 8px)"></i>Marge latérale</div>
+        </div>
+        <p class="small">Pourquoi 12 ? Parce que 12 se divise par 2, 3, 4 et 6 : la grille autorise de nombreuses combinaisons. En responsive, les colonnes s’empilent sur mobile.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Ligne de flottaison et hiérarchie">
+  <div class="kicker"><b>02</b> Vue d’ensemble</div>
+  <h2>Ce que l’œil voit <em>en premier</em>.</h2>
+  <div class="body">
+    <div class="row" style="gap:70px">
+      <div class="shot" id="fold-shot" data-region="0,0,2896,2200" data-w="1013" data-h="770" data-items=""></div>
+      <div class="col" style="flex:1;gap:24px">
+        <p style="font-size:21px">Tout ce qui est au-dessus de la <b>ligne de flottaison</b> est vu sans défiler. Trois leviers y organisent la <b>hiérarchie visuelle</b> :</p>
+        <div class="levers">
+          <div class="lever"><div class="eye">1</div><div><h3>La couleur</h3><p>Le seul aplat orange de la page — l’encart Flash — capte le regard avant tout le reste.</p></div></div>
+          <div class="lever"><div class="eye">2</div><div><h3>La taille</h3><p>Le carrousel « À la une » occupe la plus grande surface, au centre.</p></div></div>
+          <div class="lever"><div class="eye">3</div><div><h3>La position</h3><p>Logo et menu, tout en haut, sont lus « en passant », à gauche puis vers la droite.</p></div></div>
+        </div>
+        <p class="small">La position exacte de la ligne dépend de la taille de l’écran : ici, un ordinateur portable courant.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH 3 ===== -->
+<section class="slide divider" id="ch3" data-title="03 — En-tête et navigation">
+  <div class="kicker"><b>Chapitre</b> 03</div>
+  <div class="num">03</div>
+  <h2>En-tête et navigation</h2>
+  <p>Les éléments que l’on retrouve sur toutes les pages : ils disent où l’on est, qui l’on est, et où l’on peut aller.</p>
+</section>
+
+<section class="slide" data-title="L’en-tête">
+  <div class="kicker"><b>03</b> En-tête et navigation</div>
+  <h2>L’en-tête, <em>la carte d’identité</em> du site.</h2>
+  <div class="body" style="top:230px">
+    <div class="col" style="gap:22px">
+      <div class="shot" data-region="0,0,2896,300" data-w="1700" data-h="200" data-items="logo,flashbtn,search,toolbar,notif,avatar"></div>
+      <ol class="legend big" style="grid-template-columns:repeat(3,1fr);gap:16px"></ol>
+      <div class="row" style="gap:20px;align-items:stretch">
+        <div style="width:330px;align-self:center"><h3 style="font-size:25px">Trois conventions</h3><p class="small" style="margin-top:4px;font-size:17px">que l’usager connaît déjà</p></div>
+        <div class="card" style="flex:1;border-left:5px solid var(--accent);padding:14px 22px"><h3 style="font-size:21px;margin-bottom:2px">En haut à gauche</h3><p style="font-size:19px">Le logo, qui ramène à l’accueil.</p></div>
+        <div class="card" style="flex:1;border-left:5px solid var(--accent);padding:14px 22px"><h3 style="font-size:21px;margin-bottom:2px">Au centre ou à droite</h3><p style="font-size:19px">La recherche, signalée par une loupe.</p></div>
+        <div class="card" style="flex:1;border-left:5px solid var(--accent);padding:14px 22px"><h3 style="font-size:21px;margin-bottom:2px">En haut à droite</h3><p style="font-size:19px">Le compte, les alertes, la déconnexion.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="La navigation">
+  <div class="kicker"><b>03</b> En-tête et navigation</div>
+  <h2>Le menu, <em>l’arborescence rendue visible</em>.</h2>
+  <div class="body" style="top:230px">
+    <div class="row" style="gap:50px">
+      <div class="col" style="width:1000px;gap:26px">
+        <div class="shot" data-region="600,180,1740,560" data-w="1000" data-h="380" data-items="home,menu,active,dropdown"></div>
+        <div>
+          <h3 style="font-size:23px;margin-bottom:14px">Trois familles de menus</h3>
+          <div class="variants">
+            <div class="var"><div class="mini"><div class="bar"></div><div class="it" style="left:20px"></div><div class="it" style="left:66px;background:var(--teal)"></div><div class="it" style="left:112px"></div><div class="dd" style="left:58px;top:30px;width:90px;height:96px"></div><div class="ln" style="left:68px;top:44px;width:62px"></div><div class="ln" style="left:68px;top:62px;width:52px"></div><div class="ln" style="left:68px;top:80px;width:66px"></div><div class="ln" style="left:68px;top:98px;width:44px"></div></div><h4>Menu déroulant</h4><p>Une liste simple sous la rubrique : c’est le cas d’Ernest.</p></div>
+            <div class="var"><div class="mini"><div class="bar"></div><div class="it" style="left:20px"></div><div class="it" style="left:66px;background:var(--teal)"></div><div class="it" style="left:112px"></div><div class="dd" style="left:8px;right:8px;top:30px;height:110px"></div><div class="ln" style="left:22px;top:46px;width:50px;background:#8f9a9f"></div><div class="ln" style="left:22px;top:62px;width:60px"></div><div class="ln" style="left:22px;top:76px;width:44px"></div><div class="ln" style="left:106px;top:46px;width:50px;background:#8f9a9f"></div><div class="ln" style="left:106px;top:62px;width:58px"></div><div class="ln" style="left:106px;top:76px;width:40px"></div><div class="ln" style="left:190px;top:46px;width:50px;background:#8f9a9f"></div><div class="ln" style="left:190px;top:62px;width:46px"></div><div class="ln" style="left:190px;top:76px;width:58px"></div></div><h4>Méga-menu</h4><p>Un grand panneau en colonnes, pour les sites très riches.</p></div>
+            <div class="var"><div class="mini"><div class="bar"></div><div style="position:absolute;right:16px;top:7px;width:20px;display:grid;gap:3px"><i style="display:block;height:3px;background:#10202a"></i><i style="display:block;height:3px;background:#10202a"></i><i style="display:block;height:3px;background:#10202a"></i></div><div class="dd" style="right:0;top:30px;width:130px;bottom:0;border-radius:0"></div><div class="ln" style="right:30px;top:48px;width:80px"></div><div class="ln" style="right:44px;top:66px;width:66px"></div><div class="ln" style="right:26px;top:84px;width:84px"></div></div><h4>Menu hamburger</h4><p>Trois traits qui ouvrent un panneau, surtout sur mobile.</p></div>
+          </div>
+        </div>
+      </div>
+      <ol class="legend" style="flex:1"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH 4 ===== -->
+<section class="slide divider" id="ch4" data-title="04 — Corps de page">
+  <div class="kicker"><b>Chapitre</b> 04</div>
+  <div class="num">04</div>
+  <h2>Corps de page</h2>
+  <p>Un tableau de bord fait de modules : chacun a sa fonction, tous partagent les mêmes règles graphiques.</p>
+</section>
+
+<section class="slide" data-title="Modules et en-têtes de module">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>Des modules, <em>un même composant</em> répété.</h2>
+  <div class="body">
+    <div class="row" style="gap:56px">
+      <div class="shot" data-region="30,340,694,800" data-w="700" data-h="770" data-items="flash,widgethead"></div>
+      <div class="col" style="flex:1;gap:24px">
+        <ol class="legend"></ol>
+        <h3 style="font-size:23px;margin-top:6px">Huit modules, un seul modèle d’en-tête</h3>
+        <div class="strips" id="strips"></div>
+        <p class="small">Concevoir un composant une fois, l’utiliser partout : c’est le principe du <b>design system</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Le carrousel">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>Le carrousel, <em>la vitrine</em> de la page.</h2>
+  <div class="body">
+    <div class="row" style="gap:56px">
+      <div class="shot" data-region="700,350,1240,850" data-w="1000" data-h="770" data-items="carousel,arrows,caption,sectiontitle"></div>
+      <ol class="legend" style="flex:1"></ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="L’accroche d’article">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>De l’accroche <em>à la page article</em>.</h2>
+  <div class="body">
+    <div class="row" style="gap:56px">
+      <div class="col" style="width:1000px;gap:40px">
+        <div class="shot" data-region="754,1320,1146,380" data-w="1000" data-h="340" data-items="article,thumb,meta,tags"></div>
+        <div class="schema">
+          <div style="width:380px"><h3 style="font-size:25px;margin-bottom:8px">Un clic sur l’accroche…</h3><p style="font-size:19.5px">… ouvre la page de l’article, construite sur un <b>gabarit</b> commun à tous les articles du site.</p></div>
+          <div class="arrow-r">→</div>
+          <div class="apage">
+            <div style="height:24px;width:60%;background:#eef0f1">Fil d’Ariane</div>
+            <div style="height:46px;background:#c9ced1">Titre (h1)</div>
+            <div style="height:24px;width:55%">Métadonnées : auteur, date</div>
+            <div style="height:34px;background:#eef0f1">Chapô</div>
+            <div style="height:90px;background:#c4cacd">Image et légende</div>
+            <div style="height:54px;background:#eef0f1">Corps de texte, intertitres (h2)…</div>
+            <div style="height:24px;width:70%;background:var(--teal-l)">Étiquettes · partage</div>
+          </div>
+        </div>
+      </div>
+      <ol class="legend" style="flex:1"></ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Listes et pagination">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>Beaucoup d’informations, <em>peu de place</em>.</h2>
+  <div class="body">
+    <div class="row" style="gap:56px">
+      <div class="shot" data-region="30,1030,694,1080" data-w="560" data-h="770" data-items="newslist,pagination"></div>
+      <div class="col" style="flex:1;gap:26px">
+        <ol class="legend"></ol>
+        <h3 style="font-size:23px;margin-top:4px">Trois façons d’afficher la suite</h3>
+        <div class="row" style="gap:18px">
+          <div class="card" style="flex:1;padding:20px 22px"><h3 style="font-size:21px">Pagination</h3><p style="font-size:17px">On sait où l’on est et combien il reste. Idéal pour retrouver un contenu.</p></div>
+          <div class="card" style="flex:1;padding:20px 22px"><h3 style="font-size:21px">Bouton « Voir plus »</h3><p style="font-size:17px">L’usager décide de charger la suite, sans changer de page.</p></div>
+          <div class="card" style="flex:1;padding:20px 22px"><h3 style="font-size:21px">Défilement infini</h3><p style="font-size:17px">La suite arrive seule. Fluide, mais le pied de page devient inaccessible.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Tuiles, liens et états vides">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>Tuiles, liens <em>et états vides</em>.</h2>
+  <div class="body">
+    <div class="row" style="gap:40px;align-items:flex-start">
+      <div class="shot" data-region="1980,380,856,900" data-w="520" data-h="770" data-items="cards,link"></div>
+      <div class="shot" data-region="1960,1500,876,680" data-w="520" data-h="770" data-items="empty"></div>
+      <ol class="legend" style="flex:1"></ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Onglets, listes et menus contextuels">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>Onglets, statuts <em>et menus cachés</em>.</h2>
+  <div class="body">
+    <div class="row" style="gap:56px">
+      <div class="shot" data-region="1960,2230,876,1170" data-w="700" data-h="770" data-items="tabs,convlist,kebab"></div>
+      <div class="col" style="flex:1;gap:20px">
+        <ol class="legend"></ol>
+        <p class="small">Les pictogrammes de couleur indiquent le type de conversation ; le badge « Non lue » en indique le statut. Deux informations, deux codes visuels distincts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Cartes, recherche locale et appels à l’action">
+  <div class="kicker"><b>04</b> Corps de page</div>
+  <h2>Chercher, recommander, <em>inviter à agir</em>.</h2>
+  <div class="body">
+    <div class="row" style="gap:40px;align-items:flex-start">
+      <div class="shot" data-region="60,2140,634,330" data-w="480" data-h="770" data-items="favsearch"></div>
+      <div class="shot" data-region="60,3100,634,900" data-w="480" data-h="770" data-items="guide,cta"></div>
+      <ol class="legend" style="flex:1"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH 5 ===== -->
+<section class="slide divider" id="ch5" data-title="05 — Pied de page">
+  <div class="kicker"><b>Chapitre</b> 05</div>
+  <div class="num">05</div>
+  <h2>Pied de page</h2>
+  <p>Discret, mais essentiel : on y trouve ce que la loi impose et ce dont l’usager a besoin quand il est perdu.</p>
+</section>
+
+<section class="slide" data-title="Le pied de page">
+  <div class="kicker"><b>05</b> Pied de page</div>
+  <h2>Le pied de page, <em>le registre</em> du site.</h2>
+  <div class="body" style="top:230px">
+    <div class="col" style="gap:34px">
+      <div class="shot" data-region="700,5060,1500,180" data-w="1700" data-h="210" data-items="copyright,legal"></div>
+      <div class="row" style="gap:28px">
+        <ol class="legend" style="width:820px"></ol>
+        <div class="card" style="flex:1">
+          <h3>Ce que l’on doit trouver sur un site français</h3>
+          <ul class="reflex" style="margin-top:14px;gap:10px">
+            <li style="font-size:19px">Mentions légales : éditeur, directeur de la publication, hébergeur, contact.</li>
+            <li style="font-size:19px">Politique de confidentialité et gestion des cookies (RGPD).</li>
+            <li style="font-size:19px">Conditions générales d’utilisation — ou de vente, pour un site marchand.</li>
+            <li style="font-size:19px">Pour un service public : la déclaration d’accessibilité (RGAA).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH 6 ===== -->
+<section class="slide divider" id="ch6" data-title="06 — Explorer et lexique">
+  <div class="kicker"><b>Chapitre</b> 06</div>
+  <div class="num">06</div>
+  <h2>Explorer et lexique</h2>
+  <p>La page entière, cliquable, et l’ensemble du vocabulaire rencontré.</p>
+</section>
+
+<section class="slide" data-title="Cartographie complète">
+  <div class="kicker"><b>06</b> Explorer et lexique</div>
+  <h2>La page <em>atomisée</em> : <span id="carto-n">33</span> éléments.</h2>
+  <div class="body" style="top:220px;bottom:46px">
+    <div class="row" style="gap:56px">
+      <div class="canvas" id="carto"></div>
+      <ul class="carto-legend" id="carto-legend" style="flex:1"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide screen-only" data-title="Explorer la page">
+  <div class="kicker"><b>06</b> Explorer et lexique</div>
+  <h2>Explorer la page : <em>cliquez</em> sur un élément.</h2>
+  <div class="body">
+    <div id="exp-scroll"><div id="exp-canvas"></div></div>
+    <div id="exp-panel">
+      <div class="toggles" id="exp-filters"></div>
+      <div class="row" style="gap:28px">
+        <button class="switch" id="exp-all"><i></i>Afficher tous les repères</button>
+      </div>
+      <div id="exp-info"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide screen-only" id="lexique" data-title="Lexique interactif">
+  <div class="kicker"><b>06</b> Explorer et lexique</div>
+  <h2>Lexique : <em>le vocabulaire</em> de la page et du Web.</h2>
+  <div class="body" style="top:220px;bottom:46px">
+    <div id="lex-tools">
+      <input id="lex-search" type="search" autocomplete="off">
+      <div id="lex-chips" class="toggles"></div>
+      <div id="lex-count"></div>
+    </div>
+    <div id="lex-list"></div>
+  </div>
+</section>
+<!-- print lexique slides are injected here -->
+<div id="lex-print-anchor" hidden></div>
+
+<!-- ===== CH 7 ===== -->
+<section class="slide divider" id="ch7" data-title="07 — À vous de jouer">
+  <div class="kicker"><b>Chapitre</b> 07</div>
+  <div class="num">07</div>
+  <h2>À vous de jouer</h2>
+  <p>Vérifier ses acquis, puis appliquer la méthode à une autre page.</p>
+</section>
+
+<section class="slide screen-only" id="quiz" data-title="Quiz : qui suis-je ?">
+  <div class="kicker"><b>07</b> À vous de jouer</div>
+  <h2>Quiz : <em>qui suis-je</em> ?</h2>
+  <div class="body" style="top:230px">
+    <div id="quiz-area">
+      <div id="quiz-left"></div>
+      <div id="quiz-right">
+        <div id="quiz-q"></div>
+        <h3 id="quiz-title">Quel est le nom de l’élément encadré ?</h3>
+        <div class="opts" id="quiz-opts"></div>
+        <div id="quiz-fb"></div>
+        <div class="qbar"><div id="quiz-dots" style="display:flex;gap:8px;flex:1"></div><span id="quiz-score"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide print-only" data-title="Exercice : nommez les éléments">
+  <div class="kicker"><b>07</b> À vous de jouer</div>
+  <h2>Exercice : <em>nommez</em> les éléments repérés.</h2>
+  <div class="body" style="top:220px;bottom:46px">
+    <div class="row" style="gap:70px">
+      <div class="canvas" id="exo"></div>
+      <div style="flex:1"><ol class="exo-lines" id="exo-lines"></ol><p class="small" style="margin-top:30px">Corrigé à la page suivante.</p></div>
+    </div>
+  </div>
+</section>
+<section class="slide print-only" data-title="Exercice : corrigé">
+  <div class="kicker"><b>07</b> À vous de jouer</div>
+  <h2>Exercice : <em>corrigé</em>.</h2>
+  <div class="body" style="top:220px;bottom:46px">
+    <div class="row" style="gap:70px">
+      <div class="canvas" id="exo2"></div>
+      <div style="flex:1"><ol class="exo-lines" id="exo-answers"></ol></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Atelier : atomiser une page">
+  <div class="kicker"><b>07</b> À vous de jouer</div>
+  <h2>Atelier : <em>atomisez</em> une page de votre choix.</h2>
+  <div class="body" style="top:270px">
+    <div class="row" style="gap:90px">
+      <ol class="steps-list" style="width:960px">
+        <li><span><b>Choisissez</b> la page d’accueil d’un site : média, marque, musée, boutique en ligne, service public.</span></li>
+        <li><span><b>Capturez</b> la page entière, en version ordinateur et en version mobile.</span></li>
+        <li><span><b>Dessinez le zoning</b>, puis le wireframe, par-dessus la capture.</span></li>
+        <li><span><b>Nommez</b> au moins quinze composants avec le vocabulaire du lexique.</span></li>
+        <li><span><b>Analysez</b> : grille, hiérarchie visuelle, composants répétés, ce qui change entre ordinateur et mobile.</span></li>
+        <li><span><b>Proposez</b> une amélioration argumentée.</span></li>
+      </ol>
+      <div class="col" style="flex:1;gap:22px">
+        <div class="card" style="padding:32px"><h3>Livrable</h3><p>Une planche au format 16:9 réalisée dans Figma, Canva ou tout autre outil de mise en page, présentée à l’oral en trois minutes.</p></div>
+        <div class="card" style="padding:32px"><h3>Critères d’évaluation</h3><p>Justesse du vocabulaire · lisibilité de la planche · pertinence de l’analyse · qualité de la proposition.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide dark" data-title="À retenir">
+  <div class="kicker"><b>Conclusion</b> À retenir</div>
+  <h2 style="color:#fff">Cinq idées <em style="color:var(--accent)">à emporter</em>.</h2>
+  <div class="body" style="top:360px">
+    <div class="keys">
+      <div class="key"><div class="kn">01</div><h3>Un environnement</h3><p>Une page n’existe que par une URL, un serveur et, souvent, une connexion.</p></div>
+      <div class="key"><div class="kn">02</div><h3>Des zones</h3><p>En-tête, navigation, corps, pied de page : une structure presque universelle.</p></div>
+      <div class="key"><div class="kn">03</div><h3>Une grille</h3><p>Une trame invisible aligne et équilibre tous les blocs.</p></div>
+      <div class="key"><div class="kn">04</div><h3>Des composants</h3><p>Boutons, cartes, onglets… réutilisés selon des règles communes.</p></div>
+      <div class="key"><div class="kn">05</div><h3>Des conventions</h3><p>Logo cliquable, loupe, chevron : l’usager s’appuie sur ce qu’il connaît déjà.</p></div>
+    </div>
+    <p class="small" style="margin-top:80px;color:#8fa2ab">Capture : page d’accueil de la plateforme Ernest, Université de Strasbourg, 5 novembre 2026 — utilisée à des fins pédagogiques.</p>
+  </div>
+</section>
+
+</div></div>
+
+<div id="chrome" class="screen-only">
+  <button id="b-prev" title="Précédente (←)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <span id="counter"></span>
+  <button id="b-next" title="Suivante (→)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+  <button id="b-toc" title="Sommaire (O)"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+  <button id="b-fs" title="Plein écran (F)"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+<div id="help" class="screen-only">← → espace : naviguer · O : sommaire · F : plein écran</div>
+<nav id="toc" class="screen-only"><h2>Sommaire</h2><ol id="toc-list"></ol></nav>
+
+<script src="assets/components.js"></script>
+<script src="assets/lexique.js"></script>
+<script>
+(function(){
+"use strict";
+const IMG="assets/ernest.jpg", IW=2896, IH=5287;
+const C=window.COMPONENTS, byId={}; C.forEach(c=>byId[c.id]=c);
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const el=(tag,cls,html)=>{const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e;};
+const CAT_LABEL={zone:"Grande zone",header:"En-tête",nav:"Navigation",grid:"Grille",comp:"Composant",footer:"Pied de page"};
+const PINNABLE=C.filter(c=>!["zone","grid"].includes(c.cat));
+
+/* ---------- typographie française ---------- */
+function frTypo(root){
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)?2:1});
+  let n; while((n=w.nextNode())){
+    let t=n.nodeValue, o=t;
+    t=t.replace(/ ([;!?»])/g," $1").replace(/ :/g," :").replace(/« /g,"« ").replace(/(\d) (h|min|%)(?=\b|\s|$)/g,"$1 $2");
+    if(t!==o) n.nodeValue=t;
+  }
+}
+
+/* ---------- crop helper ---------- */
+function makeCrop(container, region, maxW, maxH, opts={}){
+  const [rx,ry,rw,rh]=region, s=Math.min(maxW/rw, maxH/rh);
+  container.style.width=Math.round(rw*s)+"px"; container.style.height=Math.round(rh*s)+"px";
+  const img=new Image(); img.src=IMG; img.alt=opts.alt||"Capture de la page d’accueil d’Ernest"; img.draggable=false;
+  Object.assign(img.style,{width:IW*s+"px",height:IH*s+"px",left:-rx*s+"px",top:-ry*s+"px"});
+  container.appendChild(img);
+  return s;
+}
+function addHot(container, comp, region, s, num){
+  const [rx,ry]=region, [x,y,w,h]=comp.box;
+  const hot=el("div","hot"); hot.dataset.id=comp.id;
+  Object.assign(hot.style,{left:(x-rx)*s-3+"px",top:(y-ry)*s-3+"px",width:w*s+6+"px",height:h*s+6+"px"});
+  container.appendChild(hot);
+  if(num!=null){
+    const p=el("div","pin",num);
+    const cw=parseFloat(container.style.width), ch=parseFloat(container.style.height);
+    let px=(x-rx)*s-17, py=(y-ry)*s-17;
+    px=Math.max(4,Math.min(cw-38,px)); py=Math.max(4,Math.min(ch-38,py));
+    p.style.left=px-((x-rx)*s-3)+"px"; p.style.top=py-((y-ry)*s-3)+"px";
+    hot.appendChild(p);
+  }
+  return hot;
+}
+
+/* ---------- slides with shots + legends ---------- */
+function buildShots(){
+  $$(".slide").forEach(slide=>{
+    const shots=$$(".shot[data-region]",slide); if(!shots.length) return;
+    let n=0; const legend=$(".legend",slide);
+    shots.forEach(sh=>{
+      const region=sh.dataset.region.split(",").map(Number);
+      const s=makeCrop(sh,region,+sh.dataset.w,+sh.dataset.h);
+      sh.dataset.s=s;
+      (sh.dataset.items||"").split(",").filter(Boolean).forEach(id=>{
+        const c=byId[id]; n++;
+        addHot(sh,c,region,s,n);
+        if(legend){
+          const li=el("li",null,`<span class="n">${n}</span><h4>${c.n} <span class="tag-en">${c.en}</span></h4><div class="d">${c.def} ${c.role}</div><div class="tip">${c.tip}</div>`);
+          li.dataset.id=id; legend.appendChild(li);
+        }
+      });
+    });
+    // hover sync
+    $$("[data-id]",slide).forEach(e=>{
+      e.addEventListener("mouseenter",()=>$$(`[data-id="${e.dataset.id}"]`,slide).forEach(x=>x.classList.add("on")));
+      e.addEventListener("mouseleave",()=>$$(`[data-id="${e.dataset.id}"]`,slide).forEach(x=>x.classList.remove("on")));
+    });
+  });
+}
+
+/* ---------- cover ---------- */
+function buildCover(){
+  const box=$("#cover-shot"); const img=new Image(); img.src=IMG; img.alt=""; box.appendChild(img);
+  const s=1080/IW;
+  ["logo","search","dropdown","carousel","flash","cards","article","empty"].forEach((id,i)=>{
+    const [x,y]=byId[id].box; const p=el("div","pin",i+1);
+    Object.assign(p.style,{left:x*s+6+"px",top:y*s+6+"px",animationDelay:(i*.25)+"s"}); box.appendChild(p);
+  });
+}
+
+/* ---------- three views ---------- */
+function fullCanvas(h){ const s=h/IH; const cv=el("div","canvas"); cv.style.width=Math.round(IW*s)+"px"; cv.style.height=h+"px"; return [cv,s]; }
+function buildViews(){
+  const wrap=$("#views"), H=770;
+  // capture
+  let [cv,s]=fullCanvas(H); makeCrop(cv,[0,0,IW,IH],IW*s,H);
+  wrap.appendChild(view(cv,"1. Capture","la page telle qu’affichée"));
+  // zoning
+  [cv,s]=fullCanvas(H); cv.style.background="#f2f1ec";
+  const Z=[["En-tête",0,0,IW,196,"#10202a"],["Navigation",0,196,IW,104,"#23868b"],["Colonne 1<br>« Mes… »",60,370,634,3620,"#ee7a12"],["Colonne 2<br>Actualités",754,370,1146,4660,"#e9a23b"],["Colonne 3<br>Outils",1960,370,876,3030,"#d2691e"],["Pied de page",0,5060,IW,227,"#10202a"]];
+  Z.forEach(([t,x,y,w,h,c])=>{const b=el("div","zb",t); Object.assign(b.style,{left:x*s+"px",top:y*s+"px",width:w*s+"px",height:h*s+"px",background:c}); cv.appendChild(b);});
+  wrap.appendChild(view(cv,"2. Zoning","les grandes zones"));
+  // wireframe
+  [cv,s]=fullCanvas(H);
+  const W=[]; const add=(x,y,w,h,k="")=>W.push([x,y,w,h,k]);
+  add(0,0,IW,196,"out"); add(48,30,720,140,"dark"); add(1048,58,800,80,"out"); add(2060,62,800,80,"line");
+  add(0,196,IW,104); add(900,234,1250,28,"line");
+  add(60,370,634,606,"acc");
+  [1036,2140,3106].forEach(y=>add(60,y,634,78,"out"));
+  for(let i=0;i<5;i++){add(110,1150+i*152,120,120,"img");add(256,1170+i*152,380,22,"line");}
+  add(204,1952,346,64,"out"); add(240,2260,380,70,"out"); add(210,2520,300,300,"img"); add(110,3236,494,320,"img"); add(110,3580,494,220,"out"); add(232,3908,462,80,"out");
+  add(754,370,1146,78,"out"); add(754,448,1146,576,"img"); add(754,1110,500,40,"line"); add(754,1232,1146,78,"out");
+  for(let i=0;i<10;i++){const y=1338+i*349; add(806,y+14,240,240,"img"); add(1070,y+22,780,30,"line"); add(1070,y+80,780,18,"line"); add(1070,y+112,620,18,"line"); add(790,y+298,700,30,"out");}
+  add(1156,4900,344,62,"out");
+  add(1960,370,876,78,"out"); add(2010,500,356,646,"out"); add(2428,500,356,646,"out"); add(2010,500,356,200,"img"); add(2428,500,356,200,"img");
+  add(1960,1400,500,40,"line"); add(1960,1516,876,78,"out"); add(2270,1650,256,256,"img"); add(2166,2046,464,78,"out");
+  add(1960,2236,876,78,"out"); for(let i=0;i<11;i++) add(2000,2480+i*76,790,34,"line"); add(2226,3260,344,62,"out");
+  add(770,5090,1350,30,"line"); add(1096,5136,700,22,"line"); add(1196,5180,500,22,"line");
+  W.forEach(([x,y,w,h,k])=>{const b=el("div","wf "+k); Object.assign(b.style,{left:x*s+"px",top:y*s+"px",width:Math.max(2,w*s)+"px",height:Math.max(2,h*s)+"px"}); cv.appendChild(b);});
+  wrap.appendChild(view(cv,"3. Wireframe","la structure seule"));
+  function view(cv,t,sub){const v=el("div","view"); v.appendChild(cv); v.appendChild(el("div","vt",`${t}<small>${sub}</small>`)); return v;}
+}
+
+/* ---------- grid overlay & fold ---------- */
+function buildGrid(){
+  const sh=$("#grid-shot"), s=+sh.dataset.s;
+  const mk=(id,on)=>{const o=el("div","ov"+(on?" on":"")); o.id=id; sh.appendChild(o); return o;};
+  const o12=mk("ov12",true), o3=mk("ov3",true), om=mk("ovm",false);
+  const M=60, G=60, cw=(IW-2*M-11*G)/12;
+  for(let i=0;i<12;i++){const c=el("div","c12"); Object.assign(c.style,{left:(M+i*(cw+G))*s+"px",width:cw*s+"px"}); o12.appendChild(c);}
+  [["3 col.",60,634],["5 col.",754,1146],["4 col.",1960,876]].forEach(([t,x,w])=>{const c=el("div","c3",`<b>${t}</b>`); Object.assign(c.style,{left:x*s+"px",width:w*s+"px",top:370*s+"px"}); o3.appendChild(c);});
+  [[0,M],[IW-M,M]].forEach(([x,w])=>{const c=el("div","mg"); Object.assign(c.style,{left:x*s+"px",width:w*s+"px"}); om.appendChild(c);});
+  $$(".switch[data-ov]").forEach(b=>b.addEventListener("click",()=>{b.classList.toggle("on"); $("#"+b.dataset.ov).classList.toggle("on",b.classList.contains("on"));}));
+}
+function buildFold(){
+  const sh=$("#fold-shot"), s=+sh.dataset.s, fy=1640*s;
+  const f=el("div","fold","<span>Ligne de flottaison</span>"); f.style.top=fy+"px"; sh.appendChild(f);
+  const b=el("div","below"); b.style.top=fy+"px"; sh.appendChild(b);
+  [[640,640],[1500,700],[400,70]].forEach(([x,y],i)=>{const e=el("div","eye",i+1); Object.assign(e.style,{left:x*s-27+"px",top:y*s-27+"px"}); sh.appendChild(e);});
+}
+
+/* ---------- strips of widget headers ---------- */
+function buildStrips(){
+  const box=$("#strips");
+  [[60,370],[754,370],[60,3106],[60,1036],[754,1232],[1960,1516],[60,2140],[1960,2236]].forEach(([x,y])=>{
+    const sh=el("div","shot"); sh.style.boxShadow="none"; sh.style.border="1px solid var(--line)"; makeCrop(sh,[x,y,600,78],460,60); box.appendChild(sh);
+  });
+}
+
+/* ---------- full-page map with pins ---------- */
+function pinMap(cv,list,H,withHot){
+  const s=H/IH; cv.style.width=Math.round(IW*s)+"px"; cv.style.height=H+"px";
+  makeCrop(cv,[0,0,IW,IH],IW*s,H);
+  list.forEach((c,i)=>{
+    const [x,y]=c.box; const p=el("div","pin",i+1);
+    Object.assign(p.style,{left:Math.max(2,x*s-6)+"px",top:Math.max(2,y*s-6)+"px"});
+    cv.appendChild(p);
+  });
+}
+function buildCarto(){
+  const order=["header","nav","comp","footer"];
+  const list=[]; order.forEach(cat=>PINNABLE.filter(c=>c.cat===cat).forEach(c=>list.push(c)));
+  pinMap($("#carto"),list,814); $("#carto-n").textContent=list.length;
+  const ul=$("#carto-legend"); let last="";
+  list.forEach((c,i)=>{
+    if(c.cat!==last){ul.appendChild(el("li","cg",CAT_LABEL[c.cat])); last=c.cat;}
+    ul.appendChild(el("li",null,`<span class="n">${i+1}</span>${c.n}`));
+  });
+}
+
+/* ---------- explorer ---------- */
+function buildExplorer(){
+  const cv=$("#exp-canvas"), W=1064, s=W/IW;
+  cv.style.width=W+"px"; cv.style.height=IH*s+"px";
+  const img=new Image(); img.src=IMG; img.alt="Capture de la page d’accueil d’Ernest"; img.style.width=W+"px"; cv.appendChild(img);
+  const order=c=>({zone:0,grid:1}[c.cat]??2);
+  [...C].sort((a,b)=>order(a)-order(b)).forEach(c=>{
+    const [x,y,w,h]=c.box; const hot=el("div","hot"+(c.cat==="zone"||c.cat==="grid"?" zone":"")); hot.dataset.id=c.id; hot.dataset.cat=c.cat;
+    Object.assign(hot.style,{left:x*s+"px",top:y*s+"px",width:w*s+"px",height:h*s+"px"});
+    hot.addEventListener("click",ev=>{ev.stopPropagation(); select(c.id);});
+    cv.appendChild(hot);
+  });
+  const filters=[["all","Tout"],["zone","Zones"],["grid","Grille"],["header","En-tête"],["nav","Navigation"],["comp","Composants"],["footer","Pied de page"]];
+  const fbox=$("#exp-filters");
+  filters.forEach(([k,t],i)=>{const b=el("button","chip"+(k==="comp"?" on":""),t); b.dataset.k=k; b.onclick=()=>{$$(".chip",fbox).forEach(x=>x.classList.remove("on")); b.classList.add("on"); applyFilter(k);}; fbox.appendChild(b);});
+  function applyFilter(k){ $$(".hot",cv).forEach(h=>h.classList.toggle("dim",!(k==="all"||h.dataset.cat===k))); }
+  applyFilter("comp");
+  $("#exp-all").onclick=function(){this.classList.toggle("on"); cv.classList.toggle("showall",this.classList.contains("on"));};
+  function select(id){
+    const c=byId[id];
+    $$(".hot",cv).forEach(h=>h.classList.toggle("on",h.dataset.id===id));
+    const lexHit=window.LEXIQUE.find(t=>t.ref===id);
+    $("#exp-info").innerHTML=`<div class="cat">${CAT_LABEL[c.cat]}</div><h3>${c.n}</h3><div class="en">${c.en}</div><p><b>Définition.</b> ${c.def}</p><p><b>Rôle.</b> ${c.role}</p><div class="tipbox">${c.tip}</div>${lexHit?`<p class="small" style="margin-top:18px">Voir aussi le lexique : <b>${lexHit.t}</b>.</p>`:""}`;
+    frTypo($("#exp-info"));
+  }
+  $("#exp-info").innerHTML=`<div class="cat">Mode d’emploi</div><h3>Cliquez sur un repère</h3><p>Survolez la capture : chaque élément identifié s’encadre en orange. Cliquez pour afficher sa définition, son rôle et une bonne pratique.</p><p>Faites défiler la capture pour descendre dans la page, et utilisez les filtres pour isoler une famille d’éléments.</p><div class="tipbox">Astuce : demandez aux étudiants de nommer l’élément avant de cliquer.</div>`;
+  window.__expSelect=select;
+}
+
+/* ---------- lexique ---------- */
+function normalize(s){return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();}
+function buildLexique(){
+  const L=window.LEXIQUE, CATS=window.LEX_CATS, catName=Object.fromEntries(CATS);
+  const sorted=[...L].sort((a,b)=>a.t.localeCompare(b.t,"fr"));
+  const input=$("#lex-search"); input.placeholder="Rechercher un terme : grille, cookie, onglet…";
+  const chips=$("#lex-chips"); let cat="all";
+  [["all","Tous"],...CATS].forEach(([k,t])=>{const b=el("button","chip"+(k==="all"?" on":""),t); b.onclick=()=>{cat=k; $$(".chip",chips).forEach(x=>x.classList.remove("on")); b.classList.add("on"); render();}; chips.appendChild(b);});
+  input.addEventListener("input",render);
+  input.addEventListener("keydown",e=>e.stopPropagation());
+  function hl(text,q){ if(!q) return text; const n=normalize(text); const i=n.indexOf(q); if(i<0) return text; return text.slice(0,i)+"<mark>"+text.slice(i,i+q.length)+"</mark>"+text.slice(i+q.length); }
+  function render(){
+    const q=normalize(input.value.trim()); const list=$("#lex-list"); list.innerHTML="";
+    const res=sorted.filter(t=>(cat==="all"||t.cat===cat)&&(!q||normalize(t.t+" "+(t.en||"")+" "+t.d).includes(q)));
+    res.forEach(t=>{
+      const d=el("div","term",`<span class="cat">${catName[t.cat]}</span><h4>${hl(t.t,q)}</h4>${t.en?`<div class="en">${hl(t.en,q)}</div>`:""}<p>${hl(t.d,q)}</p>${t.ref?`<a class="see" href="#" data-ref="${t.ref}">Voir sur la page →</a>`:""}`);
+      list.appendChild(d);
+    });
+    $("#lex-count").textContent=res.length+" terme"+(res.length>1?"s":"")+" sur "+L.length;
+    $$(".see",list).forEach(a=>a.onclick=e=>{e.preventDefault(); goTo(indexOfTitle("Explorer la page")); const f=$("#exp-filters .chip"); if(f) f.click(); window.__expSelect(a.dataset.ref); const h=$(`#exp-canvas .hot[data-id="${a.dataset.ref}"]`); if(h) $("#exp-scroll").scrollTo({top:parseFloat(h.style.top)-200,behavior:"smooth"});});
+    frTypo(list);
+  }
+  render();
+  // print pages
+  const anchor=$("#lex-print-anchor"); const PER=42; const groups=[];
+  CATS.forEach(([k,t])=>{ L.filter(x=>x.cat===k).sort((a,b)=>a.t.localeCompare(b.t,"fr")).forEach((x,i)=>groups.push({x,head:i===0?t:null})); });
+  const pages=[]; for(let i=0;i<groups.length;i+=PER) pages.push(groups.slice(i,i+PER));
+  pages.forEach((pg,pi)=>{
+    const sec=el("section","slide print-only"); sec.dataset.title=`Lexique (${pi+1}/${pages.length})`;
+    let html=`<div class="kicker"><b>06</b> Explorer et lexique</div><h2>Lexique <em>${pi+1}/${pages.length}</em></h2><div class="body" style="top:220px;bottom:56px"><div class="lexp">`;
+    pg.forEach((g,i)=>{ if(g.head||i===0) html+=`<h5>${g.head||catName[g.x.cat]+" (suite)"}</h5>`; html+=`<div><b>${g.x.t}</b>${g.x.en?` <i>(${g.x.en})</i>`:""} — ${g.x.d}</div>`; });
+    html+="</div></div>"; sec.innerHTML=html; anchor.parentNode.insertBefore(sec,anchor);
+  });
+}
+
+/* ---------- quiz ---------- */
+const QUIZ=[["dropdown",["Menu déroulant","Méga-menu","Fil d’Ariane","Barre latérale"]],
+ ["notif",["Badge de notification","Avatar","Infobulle","Fenêtre modale"]],
+ ["empty",["État vide","Fenêtre modale","Bannière d’alerte","Carte"]],
+ ["tags",["Étiquettes","Onglets","Fil d’Ariane","Pagination"]],
+ ["kebab",["Menu contextuel","Menu hamburger","Pagination","Badge"]],
+ ["carousel",["Carrousel","Vignette","Bannière d’alerte","Méga-menu"]],
+ ["tabs",["Onglets","Fil d’Ariane","Étiquettes","Boutons radio"]],
+ ["search",["Champ de recherche","Formulaire de connexion","Barre d’outils","Menu principal"]],
+ ["avatar",["Avatar / compte","Logo","Badge","Pictogramme"]],
+ ["cta",["Appel à l’action","Lien texte","Onglet","Étiquette"]],
+ ["thumb",["Vignette","Avatar","Carrousel","Pictogramme"]],
+ ["flash",["Bannière d’alerte","Carrousel","Pied de page","Infobulle"]]];
+function shuffle(a,seed){let s=seed; const r=()=>((s=(s*9301+49297)%233280)/233280); return a.map(v=>[r(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1]);}
+function buildQuiz(){
+  let i=0; const res=[]; const left=$("#quiz-left"), opts=$("#quiz-opts"), fb=$("#quiz-fb"), dots=$("#quiz-dots");
+  QUIZ.forEach(()=>dots.appendChild(el("i")));
+  function cropFor(c){ const [x,y,w,h]=c.box; let W=Math.max(w*2.2,900), H=Math.max(h*2.2,560); const r=960/600; if(W/H<r) W=H*r; else H=W/r; W=Math.min(W,IW); H=Math.min(H,IH); let rx=Math.max(0,Math.min(IW-W,x+w/2-W/2)), ry=Math.max(0,Math.min(IH-H,y+h/2-H/2)); return [rx,ry,W,H]; }
+  function show(){
+    const [id,choices]=QUIZ[i], c=byId[id];
+    left.innerHTML=""; const sh=el("div","shot"); const reg=cropFor(c); const s=makeCrop(sh,reg,960,600); addHot(sh,c,reg,s,null).classList.add("on"); left.appendChild(sh);
+    left.appendChild(el("p","small","Indice : observez sa forme, sa position et ce qui l’entoure."));
+    $("#quiz-q").textContent=`Question ${i+1} sur ${QUIZ.length}`;
+    opts.innerHTML=""; fb.innerHTML="";
+    shuffle(choices,i*7+3).forEach(t=>{const b=el("button","opt",`<span>${t}</span><small></small>`); b.onclick=()=>answer(b,t===choices[0],c); opts.appendChild(b);});
+    $$("i",dots).forEach((d,k)=>{d.className=res[k]===true?"ok":res[k]===false?"ko":k===i?"cur":"";});
+    $("#quiz-score").textContent=`${res.filter(Boolean).length} / ${QUIZ.length}`;
+    frTypo($("#quiz"));
+  }
+  function answer(b,ok,c){
+    if(res[i]!==undefined) return; res[i]=ok;
+    $$(".opt",opts).forEach(o=>{ if(o.querySelector("span").textContent.replace(/ | /g," ")===QUIZ[i][1][0]) o.classList.add("good"); });
+    if(!ok) b.classList.add("bad");
+    fb.innerHTML=`<b>${ok?"Bravo !":"Pas tout à fait."}</b> ${c.n} <i class="tag-en">(${c.en})</i> : ${c.def} ${c.role}<div style="margin-top:16px;display:flex;gap:12px">${i<QUIZ.length-1?'<button class="btn" id="qnext">Question suivante →</button>':'<button class="btn" id="qagain">Recommencer</button>'}</div>`;
+    frTypo(fb);
+    const n=$("#qnext"), a=$("#qagain"); if(n) n.onclick=()=>{i++; show();}; if(a) a.onclick=()=>{i=0; res.length=0; show();};
+    if(i===QUIZ.length-1) $("#quiz-score").textContent=`${res.filter(Boolean).length} / ${QUIZ.length}`;
+    $$("i",dots).forEach((d,k)=>{d.className=res[k]===true?"ok":res[k]===false?"ko":k===i?"cur":"";});
+  }
+  show();
+  // print exercise
+  const list=QUIZ.map(q=>byId[q[0]]).sort((a,b)=>a.box[1]-b.box[1]||a.box[0]-b.box[0]);
+  pinMap($("#exo"),list,814); pinMap($("#exo2"),list,814);
+  list.forEach((c,k)=>{ $("#exo-lines").appendChild(el("li",null,`<span class="n">${k+1}</span>`)); $("#exo-answers").appendChild(el("li",null,`<span class="n">${k+1}</span><b>${c.n}</b>`)); });
+}
+
+/* ---------- URL ---------- */
+function buildUrl(){
+  $$("#url span").forEach(sp=>{
+    const k=sp.dataset.k, card=$(`#urlcards .card[data-k="${k}"]`);
+    const on=v=>{sp.classList.toggle("on",v); card&&card.classList.toggle("on",v);};
+    sp.addEventListener("mouseenter",()=>on(true)); sp.addEventListener("mouseleave",()=>on(false));
+    if(card){card.addEventListener("mouseenter",()=>on(true)); card.addEventListener("mouseleave",()=>on(false));}
+  });
+}
+
+/* ---------- build ---------- */
+buildCover(); buildShots(); buildViews(); buildGrid(); buildFold(); buildStrips(); buildCarto(); buildExplorer(); buildLexique(); buildQuiz(); buildUrl();
+
+/* ---------- deck navigation ---------- */
+const slides=$$(".slide"), total=slides.length; let cur=0;
+const isPrint=matchMedia("print").matches || /[?&]print\b/.test(location.search);
+slides.forEach((s,i)=>{ let p=$(".pnum",s); if(!p){p=el("div","pnum"); s.appendChild(p);} s.dataset.idx=i; });
+function numberPages(){ // visible numbering depends on mode
+  const vis=slides.filter(s=>isPrint?!s.classList.contains("screen-only"):!s.classList.contains("print-only"));
+  vis.forEach((s,i)=>$(".pnum",s).textContent=String(i+1).padStart(2,"0")+" / "+String(vis.length).padStart(2,"0"));
+}
+const nav=slides.filter(s=>!s.classList.contains("print-only"));
+function indexOfTitle(t){return nav.findIndex(s=>s.dataset.title===t);}
+function fragsOf(s){return $$(".frag",s);}
+function goTo(n,fromBack){
+  n=Math.max(0,Math.min(nav.length-1,n)); nav.forEach(s=>s.classList.remove("current"));
+  cur=n; const s=nav[n]; s.classList.add("current");
+  fragsOf(s).forEach(f=>f.classList.toggle("shown",!!fromBack));
+  $("#counter").textContent=`${n+1} / ${nav.length}`; $("#progress").style.width=((n+1)/nav.length*100)+"%";
+  history.replaceState(null,"","#"+(n+1)); $$("#toc a").forEach((a,i)=>a.classList.toggle("cur",i===n));
+}
+function next(){ const f=fragsOf(nav[cur]).find(x=>!x.classList.contains("shown")); if(f){f.classList.add("shown"); return;} goTo(cur+1); }
+function prev(){ const sh=fragsOf(nav[cur]).filter(x=>x.classList.contains("shown")); if(sh.length&&sh.length<fragsOf(nav[cur]).length){sh.pop().classList.remove("shown"); return;} goTo(cur-1,true); }
+window.goTo=goTo;
+// toc
+nav.forEach((s,i)=>{const li=el("li"); const a=el("a",null,`<span>${String(i+1).padStart(2,"0")}</span>${s.dataset.title}`); a.href="#"+(i+1); a.onclick=e=>{e.preventDefault(); goTo(i); $("#toc").classList.remove("open");}; li.appendChild(a); $("#toc-list").appendChild(li);});
+$$(".agenda a").forEach(a=>a.addEventListener("click",e=>{e.preventDefault(); const t=$(a.getAttribute("href")); goTo(nav.indexOf(t));}));
+// keys
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT") return;
+  if(["ArrowRight","PageDown"," ","Enter"].includes(e.key)){e.preventDefault(); next();}
+  else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault(); prev();}
+  else if(e.key==="Home") goTo(0); else if(e.key==="End") goTo(nav.length-1);
+  else if(e.key==="o"||e.key==="O") $("#toc").classList.toggle("open");
+  else if(e.key==="Escape") $("#toc").classList.remove("open");
+  else if(e.key==="f"||e.key==="F") toggleFs();
+});
+function toggleFs(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+$("#b-next").onclick=next; $("#b-prev").onclick=prev; $("#b-toc").onclick=()=>$("#toc").classList.toggle("open"); $("#b-fs").onclick=toggleFs;
+// touch
+let tx=null; document.addEventListener("touchstart",e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener("touchend",e=>{ if(tx==null) return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60){dx<0?next():prev();} tx=null;});
+// chrome autohide
+let hideT; const chrome=$("#chrome"), help=$("#help");
+function wake(){chrome.classList.remove("hide"); help.classList.remove("hide"); clearTimeout(hideT); hideT=setTimeout(()=>{chrome.classList.add("hide"); help.classList.add("hide");},2600);}
+document.addEventListener("mousemove",wake); wake();
+// scale
+function fit(){ const s=Math.min(innerWidth/1920,innerHeight/1080); const st=$("#stage"); st.style.transform=`scale(${s}) translate(-50%,-50%)`; st.style.transformOrigin="0 0"; st.style.left="50%"; st.style.top="50%"; st.style.transform=`translate(-50%,-50%) scale(${s})`; st.style.transformOrigin="center center"; }
+addEventListener("resize",fit); fit();
+
+numberPages();
+frTypo(document.body);
+if(isPrint){ document.documentElement.classList.add("print"); }
+const start=parseInt((location.hash||"").slice(1)); goTo(isNaN(start)?0:start-1);
+addEventListener("beforeprint",()=>{slides.forEach(s=>{});const vis=slides.filter(s=>!s.classList.contains("screen-only"));vis.forEach((s,i)=>$(".pnum",s).textContent=String(i+1).padStart(2,"0")+" / "+String(vis.length).padStart(2,"0"));});
+addEventListener("afterprint",numberPages);
+window.__ready=true;
+})();
+</script>
+</body>
+</html>

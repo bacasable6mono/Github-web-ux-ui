@@ -36,6 +36,8 @@ input{font:inherit}
 .kicker b{color:var(--ink);font-weight:800}
 .kicker::before{content:"";width:44px;height:3px;background:var(--accent)}
 .pnum{position:absolute;right:110px;top:66px;font-size:18px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{text-wrap:balance}
+p,li,.d,.tip{text-wrap:pretty}
 h1,h2,h3{font-weight:750;letter-spacing:-.025em;line-height:1.02}
 .slide>h2{position:absolute;left:110px;top:108px;right:110px;font-size:62px}
 .slide>h2 em{font-style:normal;color:var(--teal)}
@@ -366,7 +368,7 @@ p{font-size:25px;line-height:1.5;color:var(--ink2)}
   <div class="kicker"><b>Design d’interface</b>BUT Communication · BUT Publicité</div>
   <h1>Anatomie<br>d’une page <span>web</span></h1>
   <p class="sub">Disséquer une page réelle :<br>l’ENT Ernest de l’Université de Strasbourg,<br>pour nommer chacun de ses éléments<br>et comprendre à quoi ils servent.</p>
-  <p class="meta"><b>Pierre Simonneau</b> — directeur de création, Maître de conférence associé<br>Support de cours interactif · flèches du clavier pour naviguer · touche O pour le sommaire</p>
+  <p class="meta"><b>Pierre Simonneau</b> — directeur de création, maître de conférences associé<br>Support de cours interactif · flèches du clavier pour naviguer · touche O pour le sommaire</p>
 </section>
 
 <!-- 2. OBJECTIFS -->
@@ -910,10 +912,21 @@ function frTypo(root){
   let n; while((n=w.nextNode())){
     let t=n.nodeValue, o=t;
     t=t.replace(/ ([;!?»])/g," $1").replace(/ :/g," :").replace(/« /g,"« ").replace(/(\d) (h|min|%)(?=\b|\s|$)/g,"$1 $2");
+    // insécables après les mots courts (articles, prépositions, conjonctions) : évite qu’ils restent en fin de ligne
+    t=t.replace(/(^|[\s\u00A0\u202F(«])(à|a|au|aux|de|des|du|d’|en|et|ou|la|le|les|l’|un|une|sa|son|ses|ce|ces|cet|on|ne|par|sur|qui|que|est|y|ni|où|À|Au|De|Du|En|Et|La|Le|Les|Un|Une|Ce|Ces|On|Où|Qui|Pour|pour|dans|sans|avec|vers|chez|leur|vos|nos|mes|tes|Mes|Vos)( )/g,(m,a,b)=>a+b+"\u00A0");
+    t=t.replace(/(^|[\s\u00A0\u202F(«])(à|a|au|aux|de|des|du|en|et|ou|la|le|les|un|une|sa|son|ses|ce|ces|on|ne|par|sur|qui|que|y|ni|où)( )/g,(m,a,b)=>a+b+"\u00A0");
     if(t!==o) n.nodeValue=t;
   }
 }
 
+function noWidow(root){
+  root.querySelectorAll("h1,h2,h3,h4").forEach(h=>{
+    const w=document.createTreeWalker(h,NodeFilter.SHOW_TEXT); const nodes=[]; let n; while((n=w.nextNode())) if(n.nodeValue.trim()) nodes.push(n);
+    const last=[...nodes].reverse().find(x=>x.nodeValue.trim().includes(" ")); if(!last) return;
+    const v=last.nodeValue, i=v.trimEnd().lastIndexOf(" ");
+    if(i>0) last.nodeValue=v.slice(0,i)+"\u00A0"+v.slice(i+1);
+  });
+}
 /* ---------- crop helper ---------- */
 function makeCrop(container, region, maxW, maxH, opts={}){
   const [rx,ry,rw,rh]=region, s=Math.min(maxW/rw, maxH/rh);
@@ -1108,7 +1121,7 @@ function buildLexique(){
   }
   render();
   // print pages
-  const anchor=$("#lex-print-anchor"); const PER=42; const groups=[];
+  const anchor=$("#lex-print-anchor"); const PER=36; const groups=[];
   CATS.forEach(([k,t])=>{ L.filter(x=>x.cat===k).sort((a,b)=>a.t.localeCompare(b.t,"fr")).forEach((x,i)=>groups.push({x,head:i===0?t:null})); });
   const pages=[]; for(let i=0;i<groups.length;i+=PER) pages.push(groups.slice(i,i+PER));
   pages.forEach((pg,pi)=>{
@@ -1226,7 +1239,7 @@ function fit(){ const s=Math.min(innerWidth/1920,innerHeight/1080); const st=$("
 addEventListener("resize",fit); fit();
 
 numberPages();
-frTypo(document.body);
+frTypo(document.body); noWidow(document.body);
 if(isPrint){ document.documentElement.classList.add("print"); }
 const start=parseInt((location.hash||"").slice(1)); goTo(isNaN(start)?0:start-1);
 addEventListener("beforeprint",()=>{slides.forEach(s=>{});const vis=slides.filter(s=>!s.classList.contains("screen-only"));vis.forEach((s,i)=>$(".pnum",s).textContent=String(i+1).padStart(2,"0")+" / "+String(vis.length).padStart(2,"0"));});
